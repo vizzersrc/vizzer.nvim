@@ -166,7 +166,9 @@ vim.opt.confirm = true
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
-vim.keymap.set('n', '<leader>gcc', ':w<CR>:!gcc % -o %<.out && ./%<.out<CR>', { noremap = true, silent = true, desc = 'Compile opened C file' })
+vim.keymap.set('n', '<leader>gcc', ':w<CR>:!gcc % -Wall -pedantic -o %<.out && %<.out<CR>', { noremap = true, silent = true, desc = 'Compile opened C file' })
+vim.keymap.set('n', '<leader>gca', ':w<CR>:!gcc % -S && cat %<.s<CR>', { noremap = true, silent = true, desc = 'Compile and read opened C file as Assembly' })
+vim.keymap.set('n', '<leader>pv', ':w<CR>:Ex<CR>', { noremap = true, silent = true, desc = 'Open Explorer' })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
