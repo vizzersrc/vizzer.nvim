@@ -699,7 +699,17 @@ require('lazy').setup({
             },
           },
         },
-      }
+        ccls = {
+          init_options = {
+            compilationDatabaseDirectory = "build";
+            index = {
+              threads = 0;
+            };
+            clang = {
+              excludeArgs = { "-frounding-math"} ;
+            };
+          }
+        },
 
       -- Ensure the servers and tools above are installed
       --
