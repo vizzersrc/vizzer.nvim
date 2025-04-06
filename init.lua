@@ -183,7 +183,7 @@ vim.keymap.set('n', '<leader>gcd', function()
   if result == 0 then
     require('dap').run {
       name = 'Launch compiled file',
-      type = 'lldb',
+      type = 'codelldb',
       request = 'launch',
       program = filename .. '.out',
       cwd = vim.fn.getcwd(),
