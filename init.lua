@@ -183,7 +183,7 @@ vim.keymap.set('n', '<leader>gcd', function()
   if result == 0 then
     require('dap').run {
       name = 'Launch compiled file',
-      type = 'cppdbg',
+      type = 'lldb',
       request = 'launch',
       program = filename .. '.out',
       cwd = vim.fn.getcwd(),
@@ -1012,15 +1012,6 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
-  {
-    'sindrets/diffview.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim' },
-    config = function()
-      -- Пример простой настройки:
-      vim.keymap.set('n', '<leader>gd', ':DiffviewOpen<CR>', { desc = 'Open Diffview' })
-      vim.keymap.set('n', '<leader>gq', ':DiffviewClose<CR>', { desc = 'Close Diffview' })
-    end,
-  },
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -1041,7 +1032,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
