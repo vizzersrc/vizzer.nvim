@@ -166,7 +166,34 @@ vim.opt.confirm = true
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
-vim.keymap.set('n', '<leader>gcc', ':w<CR>:!gcc % -Wall -pedantic -o %<.out && %<.out<CR>', { noremap = true, silent = true, desc = 'Compile opened C file' })
+vim.keymap.set(
+  'n',
+  '<leader>gce',
+  ':w<CR>:!gcc % -Wall -pedantic -o %<.out && %<.out<CR>',
+  { noremap = true, silent = true, desc = 'Compile & execute opened C file' }
+)
+vim.keymap.set('n', '<leader>gcd', function()
+  vim.cmd 'w'
+
+  local filename = vim.fn.expand '%:r'
+
+  local compile_cmd = string.format('gcc -g %s -o %s.out', vim.fn.expand '%', filename)
+  local result = os.execute(compile_cmd)
+
+  if result == 0 then
+    require('dap').run {
+      name = 'Launch compiled file',
+      type = 'cppdbg',
+      request = 'launch',
+      program = filename .. '.out',
+      cwd = vim.fn.getcwd(),
+      stopOnEntry = false,
+      args = {},
+    }
+  else
+    vim.notify('❌ Compilation failed!', vim.log.levels.ERROR)
+  end
+end, { noremap = true, silent = true, desc = 'Compile & debug opened C file' })
 vim.keymap.set('n', '<leader>gca', ':w<CR>:!gcc % -S && cat %<.s<CR>', { noremap = true, silent = true, desc = 'Compile and read opened C file as Assembly' })
 vim.keymap.set('n', '<leader>pv', ':w<CR>:Ex<CR>', { noremap = true, silent = true, desc = 'Open Explorer' })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
@@ -1003,11 +1030,11 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
