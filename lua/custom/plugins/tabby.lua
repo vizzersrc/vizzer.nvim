@@ -1,5 +1,6 @@
 return {
   'TabbyML/vim-tabby',
+  enabled = true,
   lazy = false,
   dependencies = { 'hrsh7th/nvim-cmp', 'neovim/nvim-lspconfig' },
   init = function()
