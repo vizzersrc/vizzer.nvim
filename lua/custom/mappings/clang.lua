@@ -18,11 +18,12 @@ map('n', '<leader>gce', function()
 
   local result = vim.fn.system(cmd)
   if vim.v.shell_error ~= 0 then
-    vim.notify('❌ Compilation failed!\n\n' .. result, vim.log.levels.ERROR)
+    vim.notify('❌ Compilation failed!\n' .. result, vim.log.levels.ERROR)
     return
   end
 
-  vim.cmd('!' .. exe)
+  local output = vim.fn.system(exe)
+  vim.notify('✅ Compiled and running: ' .. exe .. '\n' .. output, vim.log.levels.INFO)
 end, { noremap = true, silent = true, desc = 'Compile & execute opened C file' })
 
 -- 🐞 Compile & Debug (DAP)
@@ -33,7 +34,7 @@ map('n', '<leader>gcd', function()
 
   local result = vim.fn.system(cmd)
   if vim.v.shell_error ~= 0 then
-    vim.notify('❌ Compilation failed!\n\n' .. result, vim.log.levels.ERROR)
+    vim.notify('❌ Compilation failed!\n' .. result, vim.log.levels.ERROR)
     return
   end
 
@@ -56,9 +57,9 @@ map('n', '<leader>gca', function()
 
   local result = vim.fn.system(cmd)
   if vim.v.shell_error ~= 0 then
-    vim.notify('❌ Compilation to assembly failed!\n\n' .. result, vim.log.levels.ERROR)
+    vim.notify('❌ Compilation to assembly failed!\n' .. result, vim.log.levels.ERROR)
     return
   end
 
-  vim.cmd('split ' .. asm)
+  vim.cmd('vsplit' .. asm)
 end, { noremap = true, silent = true, desc = 'Compile and read opened C file as Assembly' })
