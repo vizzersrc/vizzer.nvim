@@ -166,71 +166,6 @@ vim.opt.confirm = true
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
-
--- Custom C keymaps
-local function get_paths()
-  local file_abs = vim.fn.expand '%:p'
-  local file_no_ext = vim.fn.expand '%:p:r'
-  local file_name = vim.fn.expand '%:t:r'
-  local asm_file = file_no_ext .. '.s'
-  local exe_file = file_no_ext .. '.out'
-  return file_abs, file_no_ext, file_name, asm_file, exe_file
-end
-
--- 📦 Compile & Execute
-vim.keymap.set('n', '<leader>gce', function()
-  vim.cmd 'w'
-  local file, _, _, _, exe = get_paths()
-  local cmd = string.format([[gcc "%s" -Wall -pedantic -o "%s"]], file, exe)
-
-  local result = vim.fn.system(cmd)
-  if vim.v.shell_error ~= 0 then
-    vim.notify('❌ Compilation failed!\n\n' .. result, vim.log.levels.ERROR)
-    return
-  end
-
-  vim.cmd('!' .. exe)
-end, { noremap = true, silent = true, desc = 'Compile & execute opened C file' })
-
--- 🐞 Compile & Debug (DAP)
-vim.keymap.set('n', '<leader>gcd', function()
-  vim.cmd 'w'
-  local file, _, _, _, exe = get_paths()
-  local cmd = string.format([[gcc -g "%s" -o "%s"]], file, exe)
-
-  local result = vim.fn.system(cmd)
-  if vim.v.shell_error ~= 0 then
-    vim.notify('❌ Compilation failed!\n\n' .. result, vim.log.levels.ERROR)
-    return
-  end
-
-  require('dap').run {
-    name = 'Launch compiled file',
-    type = 'codelldb',
-    request = 'launch',
-    program = exe,
-    cwd = vim.fn.getcwd(),
-    stopOnEntry = false,
-    args = {},
-  }
-end, { noremap = true, silent = true, desc = 'Compile & debug opened C file' })
-
--- 🛠 Compile to Assembly
-vim.keymap.set('n', '<leader>gca', function()
-  vim.cmd 'w'
-  local file, _, _, asm, _ = get_paths()
-  local cmd = string.format([[gcc -S "%s" -o "%s"]], file, asm)
-
-  local result = vim.fn.system(cmd)
-  if vim.v.shell_error ~= 0 then
-    vim.notify('❌ Compilation to assembly failed!\n\n' .. result, vim.log.levels.ERROR)
-    return
-  end
-
-  vim.cmd('split ' .. asm)
-end, { noremap = true, silent = true, desc = 'Compile and read opened C file as Assembly' })
-
-vim.keymap.set('n', '<leader>pv', ':w<CR>:Ex<CR>', { noremap = true, silent = true, desc = 'Open Explorer' })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
@@ -693,7 +628,7 @@ require('lazy').setup({
       vim.diagnostic.config {
         severity_sort = true,
         float = { border = 'rounded', source = 'if_many' },
-        underline = true,
+        underline = { severity = vim.diagnostic.severity.ERROR },
         signs = vim.g.have_nerd_font and {
           text = {
             [vim.diagnostic.severity.ERROR] = '󰅚 ',
@@ -702,7 +637,19 @@ require('lazy').setup({
             [vim.diagnostic.severity.HINT] = '󰌶 ',
           },
         } or {},
-        virtual_text = false,
+        virtual_text = {
+          source = 'if_many',
+          spacing = 2,
+          format = function(diagnostic)
+            local diagnostic_message = {
+              [vim.diagnostic.severity.ERROR] = diagnostic.message,
+              [vim.diagnostic.severity.WARN] = diagnostic.message,
+              [vim.diagnostic.severity.INFO] = diagnostic.message,
+              [vim.diagnostic.severity.HINT] = diagnostic.message,
+            }
+            return diagnostic_message[diagnostic.severity]
+          end,
+        },
       }
 
       vim.api.nvim_create_autocmd('CursorHold', {
@@ -1075,6 +1022,8 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   { import = 'custom.plugins' },
+  { import = 'custom.kickstart-overrides' },
+  { import = 'custom.mappings' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
