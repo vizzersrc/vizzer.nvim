@@ -166,35 +166,70 @@ vim.opt.confirm = true
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
-vim.keymap.set(
-  'n',
-  '<leader>gce',
-  ':w<CR>:!gcc % -Wall -pedantic -o %<.out && %<.out<CR>',
-  { noremap = true, silent = true, desc = 'Compile & execute opened C file' }
-)
+
+-- Custom C keymaps
+local function get_paths()
+  local file_abs = vim.fn.expand '%:p'
+  local file_no_ext = vim.fn.expand '%:p:r'
+  local file_name = vim.fn.expand '%:t:r'
+  local asm_file = file_no_ext .. '.s'
+  local exe_file = file_no_ext .. '.out'
+  return file_abs, file_no_ext, file_name, asm_file, exe_file
+end
+
+-- 📦 Compile & Execute
+vim.keymap.set('n', '<leader>gce', function()
+  vim.cmd 'w'
+  local file, _, _, _, exe = get_paths()
+  local cmd = string.format([[gcc "%s" -Wall -pedantic -o "%s"]], file, exe)
+
+  local result = vim.fn.system(cmd)
+  if vim.v.shell_error ~= 0 then
+    vim.notify('❌ Compilation failed!\n\n' .. result, vim.log.levels.ERROR)
+    return
+  end
+
+  vim.cmd('!' .. exe)
+end, { noremap = true, silent = true, desc = 'Compile & execute opened C file' })
+
+-- 🐞 Compile & Debug (DAP)
 vim.keymap.set('n', '<leader>gcd', function()
   vim.cmd 'w'
+  local file, _, _, _, exe = get_paths()
+  local cmd = string.format([[gcc -g "%s" -o "%s"]], file, exe)
 
-  local filename = vim.fn.expand '%:r'
-
-  local compile_cmd = string.format('gcc -g %s -o %s.out', vim.fn.expand '%', filename)
-  local result = os.execute(compile_cmd)
-
-  if result == 0 then
-    require('dap').run {
-      name = 'Launch compiled file',
-      type = 'codelldb',
-      request = 'launch',
-      program = filename .. '.out',
-      cwd = vim.fn.getcwd(),
-      stopOnEntry = false,
-      args = {},
-    }
-  else
-    vim.notify('❌ Compilation failed!', vim.log.levels.ERROR)
+  local result = vim.fn.system(cmd)
+  if vim.v.shell_error ~= 0 then
+    vim.notify('❌ Compilation failed!\n\n' .. result, vim.log.levels.ERROR)
+    return
   end
+
+  require('dap').run {
+    name = 'Launch compiled file',
+    type = 'codelldb',
+    request = 'launch',
+    program = exe,
+    cwd = vim.fn.getcwd(),
+    stopOnEntry = false,
+    args = {},
+  }
 end, { noremap = true, silent = true, desc = 'Compile & debug opened C file' })
-vim.keymap.set('n', '<leader>gca', ':w<CR>:!gcc % -S && cat %<.s<CR>', { noremap = true, silent = true, desc = 'Compile and read opened C file as Assembly' })
+
+-- 🛠 Compile to Assembly
+vim.keymap.set('n', '<leader>gca', function()
+  vim.cmd 'w'
+  local file, _, _, asm, _ = get_paths()
+  local cmd = string.format([[gcc -S "%s" -o "%s"]], file, asm)
+
+  local result = vim.fn.system(cmd)
+  if vim.v.shell_error ~= 0 then
+    vim.notify('❌ Compilation to assembly failed!\n\n' .. result, vim.log.levels.ERROR)
+    return
+  end
+
+  vim.cmd('split ' .. asm)
+end, { noremap = true, silent = true, desc = 'Compile and read opened C file as Assembly' })
+
 vim.keymap.set('n', '<leader>pv', ':w<CR>:Ex<CR>', { noremap = true, silent = true, desc = 'Open Explorer' })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
